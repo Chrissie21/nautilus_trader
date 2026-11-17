@@ -1,0 +1,61 @@
+name: Build Intel macOS wheel
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15-intel
+    timeout-minutes: 60
+    env:
+      MACOSX_DEPLOYMENT_TARGET: "13.0"
+      CARGO_BUILD_JOBS: "2"
+      CARGO_PROFILE_RELEASE_LTO: thin
+
+    steps:
+      - name: Check out NautilusTrader
+        uses: actions/checkout@v5
+        with:
+          repository: nautechsystems/nautilus_trader
+          ref: v2.0.0rc9
+          persist-credentials: false
+
+      - name: Set up Intel Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          architecture: x64
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: false
+
+      - name: Build wheel
+        working-directory: python
+        run: |
+          test "$(uname -m)" = x86_64
+          rustup show active-toolchain
+          uv build --wheel --out-dir ../dist --python "$(command -v python)"
+
+      - name: Verify wheel tag and check import
+        run: |
+          python -m pip download --pre --no-index --find-links dist --no-deps \
+            --only-binary=:all: --platform macosx_13_0_x86_64 \
+            --python-version 3.13 --implementation cp \
+            --dest "$RUNNER_TEMP/ventura" nautilus-trader
+          python -m venv "$RUNNER_TEMP/nautilus-smoke"
+          smoke_python="$RUNNER_TEMP/nautilus-smoke/bin/python"
+          "$smoke_python" -m pip install dist/*.whl
+          cd "$RUNNER_TEMP"
+          "$smoke_python" -c 'import nautilus_trader; from nautilus_trader.backtest import BacktestEngine; print(nautilus_trader.__version__)'
+
+      - name: Upload wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: nautilus-trader-macos-intel-cp313
+          path: dist/*.whl
+          if-no-files-found: error
