@@ -9,7 +9,7 @@ permissions:
 jobs:
   build:
     runs-on: macos-15-intel
-    timeout-minutes: 60
+    timeout-minutes: 180
     env:
       MACOSX_DEPLOYMENT_TARGET: "13.0"
       CARGO_BUILD_JOBS: "2"
