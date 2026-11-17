@@ -15,6 +15,10 @@ jobs:
       CARGO_BUILD_JOBS: "2"
       CARGO_PROFILE_RELEASE_LTO: thin
 
+    defaults:
+      run:
+        shell: bash
+
     steps:
       - name: Check out NautilusTrader
         uses: actions/checkout@v5
@@ -29,24 +33,37 @@ jobs:
           python-version: "3.13"
           architecture: x64
 
+      - name: Install Cap'n Proto
+        uses: ./.github/actions/install-capnp
+
+      - name: Set up Rust
+        run: |
+          toolchain="$(python -c 'import tomllib; print(tomllib.load(open("rust-toolchain.toml", "rb"))["toolchain"]["channel"])')"
+          rustup toolchain install "$toolchain" --profile minimal
+          rustup show active-toolchain
+
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
           enable-cache: false
+          version-file: python/pyproject.toml
 
       - name: Build wheel
         working-directory: python
         run: |
           test "$(uname -m)" = x86_64
-          rustup show active-toolchain
-          uv build --wheel --out-dir ../dist --python "$(command -v python)"
+          export PYO3_PYTHON="$(command -v python)"
+          maturin_version="$(bash ../scripts/maturin-version.bash)"
+          uv run --no-project --no-build --with "maturin==${maturin_version}" -- \
+            maturin build --locked --release --target x86_64-apple-darwin \
+            --interpreter "$PYO3_PYTHON" --out ../dist
 
       - name: Verify wheel tag and check import
         run: |
           python -m pip download --pre --no-index --find-links dist --no-deps \
             --only-binary=:all: --platform macosx_13_0_x86_64 \
             --python-version 3.13 --implementation cp \
-            --dest "$RUNNER_TEMP/ventura" nautilus-trader
+            --dest "$RUNNER_TEMP/ventura" "nautilus-trader==2.0.0rc9"
           python -m venv "$RUNNER_TEMP/nautilus-smoke"
           smoke_python="$RUNNER_TEMP/nautilus-smoke/bin/python"
           "$smoke_python" -m pip install dist/*.whl
