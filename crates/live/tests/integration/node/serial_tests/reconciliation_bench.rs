@@ -209,7 +209,7 @@ async fn reconciliation_latency(
 
     let origin = Instant::now();
     let latencies = Rc::new(RefCell::new(Vec::with_capacity(SAMPLES)));
-    let received = Rc::new(Cell::new(0usize));
+    let received = Rc::new(Cell::new(0_usize));
     let samples = latencies.clone();
     let count = received.clone();
     let handle = node.handle();
@@ -240,7 +240,6 @@ async fn reconciliation_latency(
         let metrics = callback_handle.metrics_snapshot();
         let maintenance = metrics.maintenance_busy_ns;
         let mut boundaries = callback_snapshots.get();
-
         if index == WARMUP - 1 {
             boundaries[0] = Some(metrics);
             assert!(
@@ -468,6 +467,7 @@ async fn reconciliation_latency(
 
     let poll_values = polls.into_inner();
     let poll_busy_ns: u64 = poll_values.iter().sum();
+
     let distributions = [
         (
             "delivery",

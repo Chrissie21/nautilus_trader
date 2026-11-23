@@ -58,8 +58,8 @@ user-login = "epage"
 user-name = "Ed Page"
 
 [[publisher.clap_lex]]
-version = "1.1.0"
-when = "2026-03-12"
+version = "1.1.2"
+when = "2026-11-16"
 user-id = 6743
 user-login = "epage"
 user-name = "Ed Page"
@@ -337,6 +337,12 @@ notes = "Minor updates, nothing awry here."
 who = "Benjamin Bouvier <public@benj.me>"
 criteria = "safe-to-deploy"
 delta = "0.9.0 -> 0.10.2"
+
+[[audits.bytecode-alliance.audits.bumpalo]]
+who = "Nick Fitzgerald <fitzgen@gmail.com>"
+criteria = "safe-to-deploy"
+delta = "3.20.3 -> 3.20.4"
+notes = "I am the author of this crate"
 
 [[audits.bytecode-alliance.audits.cfg-if]]
 who = "Alex Crichton <alex@alexcrichton.com>"

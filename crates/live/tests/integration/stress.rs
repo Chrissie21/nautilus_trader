@@ -257,7 +257,7 @@ fn runner_queues_drained(snapshot: RunnerMetricsSnapshot) -> bool {
 // `wait_until_async`, which sleeps via real `tokio::time` and panics under
 // madsim where there is no real Tokio reactor.
 async fn wait_until_running(handle: &LiveNodeHandle) {
-    let mut iters = 0u32;
+    let mut iters = 0_u32;
 
     while !handle.is_running() {
         dst::task::yield_now().await;
@@ -318,7 +318,6 @@ async fn stress_trade_burst() {
     let handle = node.handle();
 
     let driver_handle = handle.clone();
-
     let driver = async move {
         wait_until_running(&driver_handle).await;
 
@@ -442,7 +441,6 @@ async fn stress_cancel_starvation() {
         let mut yield_iters_total: u64 = 0;
         let mut yield_iters_max: u32 = 0;
         let trade_step = total_trades / cancels;
-
         for seq in 0..cancels {
             for _ in 0..trade_step {
                 data_sender
@@ -466,7 +464,7 @@ async fn stress_cancel_starvation() {
                 TradingCommand::CancelOrder(sample_cancel(seq as u64, ts_init)),
             ));
 
-            let mut yield_iters = 0u32;
+            let mut yield_iters = 0_u32;
 
             loop {
                 dst::task::yield_now().await;
